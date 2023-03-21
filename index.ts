@@ -4,7 +4,7 @@ import { exec } from "child_process";
 import { randomUUID } from "crypto";
 import init from "fastify";
 import { rm, writeFile } from "fs/promises";
-const fastify = init({ logger: false });
+const fastify = init({ logger: true });
 
 function cmd(command: string) {
   let p = exec(command);
@@ -22,7 +22,7 @@ function cmd(command: string) {
   });
 }
 
-fastify.post("/run", async (req, _) => {
+fastify.post("/", async (req, _) => {
   const tsCode = String(req.body);
   console.log(tsCode);
 
