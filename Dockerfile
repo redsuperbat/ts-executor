@@ -14,6 +14,8 @@ FROM node:latest as runner
 
 WORKDIR /app
 
+RUN npm install -g zx
+
 COPY --from=builder /app/node_modules node_modules
 
 COPY --from=builder /app/index.js index.js

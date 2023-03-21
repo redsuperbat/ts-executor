@@ -4,7 +4,7 @@ import { exec } from "child_process";
 import { randomUUID } from "crypto";
 import init from "fastify";
 import { rm, writeFile } from "fs/promises";
-const fastify = init({ logger: true });
+const fastify = init({ logger: true, requestTimeout: 60_000 });
 
 function cmd(command: string) {
   let p = exec(command);
@@ -33,6 +33,7 @@ fastify.post("/", async (req, _) => {
     module: ModuleKind.ES2015,
     target: ScriptTarget.ES2015,
   });
+
   console.log(js);
   const filename = randomUUID();
   await writeFile(filename, js);
