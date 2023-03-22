@@ -5,10 +5,11 @@ import { exec } from "child_process";
 import { randomUUID } from "crypto";
 import init from "fastify";
 import { rm, writeFile } from "fs/promises";
-const fastify = init({ logger: true, requestTimeout: 60_000 });
+const fastify = init({ logger: true });
 
 function cmd(command: string) {
   let p = exec(command);
+  console.log(`Started process ${p.pid}...`);
   return new Promise<string>((res) => {
     let stdout = "";
     const append = (data: any) => {
@@ -18,7 +19,16 @@ function cmd(command: string) {
     };
     p.stdout?.on("data", append);
     p.stderr?.on("data", append);
+
+    // Automatically kill long lasting processes
+    const timer = setTimeout(() => {
+      console.log(
+        `Process ${p.pid} has been running for more than 20sec killing it.`
+      );
+      p.kill();
+    }, 20_000);
     p.on("exit", () => {
+      clearTimeout(timer);
       res(stdout.trim());
     });
   });
@@ -26,6 +36,12 @@ function cmd(command: string) {
 
 fastify.post("/", async (req, _) => {
   const tsCode = String(req.body);
+  console.log(
+    `
+########################
+#####  Typescript ######
+########################`.trim()
+  );
   console.log(tsCode);
 
   const js = transpile(tsCode, {
@@ -35,11 +51,24 @@ fastify.post("/", async (req, _) => {
     target: ScriptTarget.ES2015,
   });
 
+  console.log(
+    `
+########################
+##### Compiled JS ######
+########################`.trim()
+  );
+
   console.log(js);
   const filename = randomUUID();
   await writeFile(filename, js);
   try {
     const output = await cmd(`zx --install --quiet ./${filename}`);
+    console.log(
+      `
+########################
+######## OUTPUT ########
+########################`.trim()
+    );
     console.log(output);
     return output;
   } finally {
