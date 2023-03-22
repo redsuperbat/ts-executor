@@ -1,5 +1,6 @@
 import { ModuleKind, ScriptTarget, transpile } from "typescript";
 
+import cors from "@fastify/cors";
 import { exec } from "child_process";
 import { randomUUID } from "crypto";
 import init from "fastify";
@@ -48,6 +49,7 @@ fastify.post("/", async (req, _) => {
 
 const start = async () => {
   try {
+    await fastify.register(cors);
     await fastify.listen({ port: 3000, host: "0.0.0.0" });
   } catch (err) {
     fastify.log.error(err);
